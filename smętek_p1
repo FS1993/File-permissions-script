@@ -1,0 +1,48 @@
+#!/bin/bash
+#Skrypt zlicza pliki w podanej gałęzi drzewa katalogów i wypisuje ich listę.
+#Wywołanie: smętek_p1 katalog  prawa1  prawa2 …
+
+if [ -z "$1" ]; then
+	echo "Nie podano nazwy katalogu. 
+Poprawna forma wywołania: smętek_p1 katalog  prawa1  prawa2 … ";
+
+
+elif [ -d  "$1" ] && [ -r "$1" ] && [ -z "$2" ]; then
+	echo "Nie podano argumentów praw dostępu.
+Poprawna forma wywołania: smętek_p1 katalog  prawa1  prawa2 … ";
+
+
+elif [ -d  "$1" ] && [ -r "$1" ]; then
+
+		for i in $*
+		do
+		p="$i"
+		#Warunek if wyklucza pierwszy argument skryptu.
+		if [ -d "$i" ]; then
+			continue;
+		else
+			if [ $(expr match "$i" "[+-]\?[0-9]\+$") -ne 0 ] && [ "$i" -ge 0 ] && [ "$i" -le 755 ]; then
+			echo -n "Liczba plików $p: "
+			#Opcje find działają poprawnie w polskiej wersji językowej powłoki.
+			find "$1" 2> >(grep -v 'Brak dostępu' >&2) -perm "$p" -type f | wc -l
+			find "$1" 2> >(grep -v 'Brak dostępu' >&2) -perm "$p" -type f
+			echo "--------------------"
+
+			else
+			echo "$i: niepoprawny argument. Prosze podawać poszczególne uprawnienia w postaci liczb 0-755."
+			echo "--------------------";
+			fi;
+		fi
+		done
+		#Wydrukowanie folderów z brakiem dostępu.
+		x=$(find "$1" 2> >(grep -v 'Brak dostępu' >&2) ! -readable -type d | wc -l)
+		if [ "$x" -ge 1 ]; then
+			echo "Brak dostępu do folderów:";
+		fi
+		find "$1" 2> >(grep -v 'Brak dostępu' >&2) ! -readable -type d;
+
+elif [ -d  "$1" ]; then
+	echo "$1: brak dostępu do katalogu.";
+else
+	echo "$1: nie znaleziono katalogu.";
+fi
